@@ -1,18 +1,22 @@
 import { useState } from 'react'
+import {Link} from 'react-router-dom'
 
 
-
+// define signup function
 export default function Signup() {
+    // hold the form input values with useState
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
         detectiveName: ''
     })
+    //handle submission of form
     const handleSubmit = (e) => {
-        e.preventDefault()
+        e.preventDefault()//prevent page reload on form submit
         console.log('Form submitted:', formData)
     }
+    //handle changes to the form fields 
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -62,7 +66,10 @@ export default function Signup() {
             />
 
             <button type="submit">Sign Up</button>
+            <p>Already have an account? <Link to="/login">Log in here</Link></p>
+
         </form>
+        
     </>
     )
 
