@@ -1,9 +1,12 @@
 import { useState } from "react"
-import {Link} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
+import axios from 'axios'
 
 
 // login component recieves "onLogin" Prop 
 export default function Login({onLogin}) {
+    const navigate = useNavigate();
+
     // hold the form imput values with useState
     const [formData, setFormData] = useState({
         username: '',
@@ -20,17 +23,36 @@ export default function Login({onLogin}) {
      })
     }
     // handle form submissions 
-    const handleSubmit= (e) => {
-        e.preventDefault(); //prevents page from reloading on form submit 
+    const handleSubmit= async (e) => {
+        e.preventDefault(); //prevents page from reloading on form submit
+        console.log("Login form submitted"); 
+        setError(''); // clears existing errors
+
+        // login if both fields are filled
+        if (!formData.username || !formData.password) {
+            setError('Please enter both username and password.');
+            return;
+        }
+        try {
+            // send post request to django backend
+            const response = await axios.post('http://127.0.0.1:8000/api/token/', formData);
 
 
-        // for later use with backend connection, simulates login if both fields are filled
-        if (formData.username && formData.password) {
+            //destructure access and refresh tokens from response
+            const {access, refresh} = response.data;
+
+            // store tokens locally
+            localStorage.setItem('accessToken', access);
+            localStorage.setItem('refreshToken', refresh);
+        
             // call the "onLogin" function passed as a prop
-            onLogin?.(formData.username)
-        } else{
+            onLogin?.(formData.username);
+            // Redirect to profile
+            navigate('/profile');
+            } catch (err) {
             //show an error if any field is missing
-            setError('Please enter both username and password');
+            console.error('Login error', err)
+            setError('Invalid username or password');
         }
 
     };
