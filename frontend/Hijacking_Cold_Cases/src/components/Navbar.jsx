@@ -2,6 +2,7 @@ import {Link, useNavigate} from 'react-router-dom'
 
 export default function Navbar() {
     const navigate = useNavigate();
+    const isLoggedIn = !!localStorage.getItem('accessToken');
 
     const handleLogout = () => {
         console.log("Logging out...");
@@ -16,10 +17,18 @@ export default function Navbar() {
     return(
         <nav>
             <ul>
-                <li><Link to="/signup">Sign Up</Link></li>
-                <li><Link to="/login">Login</Link></li>
-                <li><Link to="/profile">Profile</Link></li>
-                <li><button onClick={handleLogout}>Logout</button></li>
+                {!isLoggedIn && (
+                <>
+                    <li><Link to="/signup">Sign Up</Link></li>
+                    <li><Link to="/login">Login</Link></li>                    
+                </>
+                )}
+                {isLoggedIn && (
+                <>    
+                    <li><Link to="/profile">Profile</Link></li>
+                    <li><button onClick={handleLogout}>Logout</button></li>
+                </>
+                )}
             </ul>
         </nav>
     )
