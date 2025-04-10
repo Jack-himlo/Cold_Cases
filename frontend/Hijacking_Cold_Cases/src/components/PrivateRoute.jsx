@@ -1,9 +1,9 @@
 import { Navigate } from "react-router-dom";
 
-export default function PrivateRouter({children}) {
+export default function PrivateRoute({children}) {
     const accessToken = localStorage.getItem('accessToken');
 
-    //if no tocken excist, redirect to login
+    //if no token exist, redirect to login
     if(!accessToken) {
         return <Navigate to="/login" replace />
     }
