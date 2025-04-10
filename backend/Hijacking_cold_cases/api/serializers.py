@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Case  
+from .models import User, Case, CaseInstance  
 
 
 
@@ -10,15 +10,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'password']
 
-        def create(self,validated_data):
-            user = User.objects.create.user(
-                username= validated_data['username'],
-                email= validated_data['email'],
-                password= validated_data['password']
-            )
-            return user
+    def create(self,validated_data):
+        user = User.objects.create_user(
+            username= validated_data['username'],
+            email= validated_data['email'],
+            password= validated_data['password']
+        )
+        return user
         
 class CaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = '__all__'
+
+class CaseInstanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseInstance
+        fields = '__all__'
+        read_only_fields = ['user', 'started_at', 'status']
