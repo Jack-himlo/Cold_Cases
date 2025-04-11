@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Case, CaseInstance  
+from .models import User, Case, CaseInstance, Clue  
 
 
 
@@ -18,13 +18,24 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
         
-class CaseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Case
-        fields = '__all__'
+
 
 class CaseInstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseInstance
         fields = '__all__'
         read_only_fields = ['user', 'started_at', 'status']
+
+class ClueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Clue
+        fields = ['id', 'text', 'order']
+
+
+class CaseSerializer(serializers.ModelSerializer):
+    clues = ClueSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Case
+        fields = '__all__'
+    
