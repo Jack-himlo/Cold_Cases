@@ -4,10 +4,8 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 
 
-
 class User(AbstractUser):
     pass 
-
 
 class Case(models.Model):
     DIFFICULTY_CHOICES = [
@@ -35,7 +33,6 @@ class Case(models.Model):
         blank=True
     )
 
-
     def __str__(self):
         return self.title
     
@@ -59,5 +56,17 @@ class Clue(models.Model):
     def __str__(self):
         return f"Clue {self.order} for {self.case.title}"
 
+class Person(models.Model):
+    gender =models.CharField(max_length=15)
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    email = models.EmailField()
+    cell = models.CharField(max_length=30)
+    picture = models.URLField()
+    thumbnail_picture = models.URLField()
+    nationality = models.CharField(max_length=10)
+
+    def __str__(self):
+        return f"{self.name}-{self.location} "
 
 # Create your models here.

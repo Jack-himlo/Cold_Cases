@@ -2,7 +2,6 @@ from rest_framework import serializers
 from .models import User, Case, CaseInstance, Clue  
 
 
-
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -19,7 +18,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
         
 
-
 class CaseInstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseInstance
@@ -31,11 +29,9 @@ class ClueSerializer(serializers.ModelSerializer):
         model = Clue
         fields = ['id', 'text', 'order']
 
-
 class CaseSerializer(serializers.ModelSerializer):
     clues = ClueSerializer(many=True, read_only=True)
 
     class Meta:
         model = Case
         fields = '__all__'
-    
