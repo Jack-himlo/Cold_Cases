@@ -1,3 +1,6 @@
+#enviroment
+.env
+
 # Logs
 logs
 *.log
@@ -22,3 +25,32 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+*.pot
+
+# Django
+db.sqlite3
+
+
+# Node
+node_modules/
+
+
+# React
+build/
+dist/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

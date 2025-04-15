@@ -58,7 +58,9 @@ class Clue(models.Model):
 
 class Person(models.Model):
     gender =models.CharField(max_length=15)
-    name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255 )
+    last_name = models.CharField(max_length=255)
+    # full_name= first_name +  ' ' + last_name // make into property later
     location = models.CharField(max_length=255)
     email = models.EmailField()
     cell = models.CharField(max_length=30)

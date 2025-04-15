@@ -9,7 +9,9 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os 
+RANDOM_USER_API_KEY= os.getenv("RANDOM_USER_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
