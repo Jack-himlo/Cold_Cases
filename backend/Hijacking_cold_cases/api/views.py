@@ -67,7 +67,9 @@ class GenerateCaseBatchView(APIView):
                         messages=[{"role":"user", "content": prompt}]
                     )
                     content = res.choices[0].message.content
-                    title, summary = self.parse_openai_response(content)
+                    print("Raw GPT response :\n", content)
+                    title= "TBD"
+                    summary = content
 
                     case = Case.objects.create(
                         title=title,
@@ -77,12 +79,14 @@ class GenerateCaseBatchView(APIView):
                         owner=request.user
                     )
 
-                    created_cases.append(case.title)
+                    created_cases.append({"title": case.title, "summary": case.summary})
                 except Exception as e:
+                    import traceback
+                    print(traceback.format_exc())
                     return Response({"error": str(e)}, status= 500)
         return Response({
                 "message": f"{len(created_cases)} cases created.",
-                "title": created_cases
+                "cases": created_cases
             }, status=201)
     
     def build_prompt(self,people):
@@ -90,18 +94,76 @@ class GenerateCaseBatchView(APIView):
             f"- {p.first_name} {p.last_name}, {p.gender}, from {p.location}, nationality {p.nationality}."
             for p in people
         ])
-        return f""" Generate a detective style murder mystery involving the poeple below.
-        Respond with:
-        Title: [Case Title]
-        summary: [1 paragraph pf what happened]
-        People:
+        return f"""
+
+        Generate a detective-style murder mystery game where the user is the detective who snuck away from a mandatory training and found a cold case closet. 
+        
+        Include:
+
+        Title: [unique One-line case title]
+        Summary: [1-paragraph story overview]
+        Clues:
+        1. [First clue: describe if it's a real lead or red herring]
+        2. [Second clue...]
+        3. [Third clue...]
+
+        Alibis:
+        - [Person Name]: [Alibi description]
+        - ...
+
+        Motive:
+        - [Person Name]: [Their potential motive]
+        - ...
+
+        Killer: [Name of the actual killer]
+        Characters:
         {body}
         """
     def parse_openai_response(self, text):
         lines = text.splitlines()
-        title = next(line for line in lines if line.lower().startswith("title:")).split(":",1)[1].strip()
-        summary= next(line for line in lines if line.lower().startswith("summary")).split(":", 1)[1].strip()
-        return title,summary
+        result = {
+            "title": "",
+            "summary": "",
+            "clues": [],
+            "alibis": {},
+            "motives": {},
+            "killer": "",
+            "characters": []
+        }
+
+        section = None
+        for line in lines:
+            line = line.strip()
+
+            if line.lower().startswith("title:"):
+                result["title"] = line.split(":", 1)[1].strip()
+                section = None
+            elif line.lower().startswith("summary:"):
+                result["summary"] = line.split(":", 1)[1].strip()
+                section = None
+            elif line.lower().startswith("clues:"):
+                section = "clues"
+            elif line.lower().startswith("alibis:"):
+                section = "alibis"
+            elif line.lower().startswith("motive:") or line.lower().startswith("motives:"):
+                section = "motives"
+            elif line.lower().startswith("killer:"):
+                result["killer"] = line.split(":", 1)[1].strip()
+                section = None
+            elif line.lower().startswith("characters:"):
+                section = "characters"
+            elif section == "clues" and line and line[0].isdigit():
+                result["clues"].append(line.split(".", 1)[1].strip())
+            elif section == "alibis" and ":" in line:
+                name, alibi = line.split(":", 1)
+                result["alibis"][name.strip()] = alibi.strip()
+            elif section == "motives" and ":" in line:
+                name, motive = line.split(":", 1)
+                result["motives"][name.strip()] = motive.strip()
+            elif section == "characters" and line.startswith("-"):
+                result["characters"].append(line[1:].strip())
+
+        return result
 
 
 
