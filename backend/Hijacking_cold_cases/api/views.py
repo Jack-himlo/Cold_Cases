@@ -7,9 +7,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import RegisterSerializer, CaseSerializer, CaseInstanceSerializer
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
-from .models import Case, CaseInstance, Person
+from .models import Case, CaseInstance, Person, Clue
 from dotenv import load_dotenv
-import os
+import os, re 
 
 
 
@@ -68,18 +68,32 @@ class GenerateCaseBatchView(APIView):
                     )
                     content = res.choices[0].message.content
                     print("Raw GPT response :\n", content)
-                    title= "TBD"
-                    summary = content
+                    
+
+                    parsed = self.parse_openai_response(content)
 
                     case = Case.objects.create(
-                        title=title,
-                        summary=summary,
+                        title=parsed["title"] or "Untitled Case",
+                        summary=parsed["summary"],
                         difficulty = difficulty,
                         status = "unsolved",
-                        owner=request.user
+                        owner=request.user,
+                        killer=parsed["killer"],
+                        justification = parsed.get("justification", "")
                     )
+                    for idx, clue_text in enumerate(parsed["clues"], start=1):
+                        Clue.objects.create(case=case, order=idx, text=clue_text)
 
-                    created_cases.append({"title": case.title, "summary": case.summary})
+                    created_cases.append({
+                        "title": case.title, 
+                        "killer": case.killer,
+                        "clues": parsed["clues"],
+                        "summary": parsed["summary"],
+                        "justification": parsed["justification"]
+                        })
+                
+                
+                
                 except Exception as e:
                     import traceback
                     print(traceback.format_exc())
@@ -116,6 +130,7 @@ class GenerateCaseBatchView(APIView):
         - ...
 
         Killer: [Name of the actual killer]
+        Justification: [Brief explanation of why this person committed the crime]
         Characters:
         {body}
         """
@@ -128,6 +143,7 @@ class GenerateCaseBatchView(APIView):
             "alibis": {},
             "motives": {},
             "killer": "",
+            "justification": "",
             "characters": []
         }
 
@@ -162,6 +178,8 @@ class GenerateCaseBatchView(APIView):
                 result["motives"][name.strip()] = motive.strip()
             elif section == "characters" and line.startswith("-"):
                 result["characters"].append(line[1:].strip())
+            elif line.lower().startswith("justification:"):
+                result["justification"] = line.split(":", 1)[1].strip()
 
         return result
 

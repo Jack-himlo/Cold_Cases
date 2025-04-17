@@ -25,7 +25,8 @@ class Case(models.Model):
     status= models.CharField(max_length=20, choices= STATUS_CHOICES, default='cold')
     difficulty = models.CharField(max_length=20, choices=DIFFICULTY_CHOICES, default='easy')
     created_at= models.DateTimeField(auto_now_add=True)
-
+    killer = models.CharField(max_length=255, blank=True)
+    justification= models.TextField(blank=True)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
