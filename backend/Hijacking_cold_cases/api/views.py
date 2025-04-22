@@ -53,7 +53,7 @@ class GenerateCaseBatchView(APIView):
         created_cases = []
 
         for difficulty in ["easy","medium","hard"]:
-            for _ in range(1):# 3 cases per difficulty
+            for _ in range(5):#  range(x) = cases per difficulty
                 num_needed = CHARACTERS_PER_VIEW[difficulty]
 
                 if len(people_pool) < num_needed:
