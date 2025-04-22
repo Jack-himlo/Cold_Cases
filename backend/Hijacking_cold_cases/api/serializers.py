@@ -25,13 +25,14 @@ class CaseInstanceSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'started_at', 'status']
 
 class ClueSerializer(serializers.ModelSerializer):
-    class Meta:
+   
+   class Meta:
         model = Clue
-        fields = ['id', 'text', 'order']
+        fields = '__all__'
 
 class CaseSerializer(serializers.ModelSerializer):
     clues = ClueSerializer(many=True, read_only=True)
-
+    alibis = serializers.JSONField(read_only=True)
     class Meta:
         model = Case
         fields = '__all__'

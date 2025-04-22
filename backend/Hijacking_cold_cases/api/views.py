@@ -17,6 +17,8 @@ load_dotenv()
 RANDOM_USER_API_KEY= os.getenv("RANDOM_USER_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+
 class RegisterView(APIView):
     def post(self,request):
         serializer = RegisterSerializer(data=request.data)
@@ -79,10 +81,15 @@ class GenerateCaseBatchView(APIView):
                         status = "unsolved",
                         owner=request.user,
                         killer=parsed["killer"],
+                        alibis=parsed.get("alibis", {}),
                         justification = parsed.get("justification", "")
                     )
-                    for idx, clue_text in enumerate(parsed["clues"], start=1):
-                        Clue.objects.create(case=case, order=idx, text=clue_text)
+                    for idx, (name, clue_data) in enumerate(parsed["clues"].items(), start=1):
+                        full_text = f"{name}: {clue_data['text']} ({clue_data['type']})"
+                        character_match = re.match(r"-\s*(.*)", name) or re.match(r"(.*?):", clue_data['text'])
+                        character_name = character_match.group(1).strip() if character_match else None
+
+                        Clue.objects.create(case=case, order=idx, text=full_text, character= character_name)
 
                     created_cases.append({
                         "title": case.title, 
@@ -116,12 +123,20 @@ class GenerateCaseBatchView(APIView):
 
         Title: [unique One-line case title]
         Summary: [1-paragraph story overview]
-        Clues:
-        1. [First clue: describe if it's a real lead or red herring]
-        2. [Second clue...]
-        3. [Third clue...]
+        Clues: assign each clue to a character
+        Provide 3 clues. Each clue should be a piece of physical evidence, a witness statement, a video, or a suspicious object.
+
+        Each clue must be assigned to a specific suspect listed below and marked as either a real lead or a red herring.
+
+        Format:
+        - [Character Name]: [Clue description] - [Real Lead or Red Herring]
+
+        Example:
+         - Melvin Warren: A bloodied glove found behind the bakery - Real Lead
+         - Caroline Long: A torn love letter in her handwriting - Red Herring
 
         Alibis:
+        -Provide one alibi for each character listed below. Each alibi should include where the person claims to be at the time of the murder, what they were doing, and whether there were any witnesses.
         - [Person Name]: [Alibi description]
         - ...
 
@@ -139,12 +154,12 @@ class GenerateCaseBatchView(APIView):
         result = {
             "title": "",
             "summary": "",
-            "clues": [],
+            "clues": {},
             "alibis": {},
             "motives": {},
             "killer": "",
             "justification": "",
-            "characters": []
+            "characters": {}
         }
 
         section = None
@@ -168,11 +183,22 @@ class GenerateCaseBatchView(APIView):
                 section = None
             elif line.lower().startswith("characters:"):
                 section = "characters"
-            elif section == "clues" and line and line[0].isdigit():
-                result["clues"].append(line.split(".", 1)[1].strip())
+
+
+            elif section == "clues" and line.startswith("-") and ":" in line:
+                try:
+                    # Split on the first colon, and then dash
+                    name, remainder = line.split(":", 1)
+                    clue_text, clue_type = remainder.rsplit("-", 1) if "-" in remainder else (remainder, "Unknown")
+                    result["clues"][name.strip()] = {
+                    "text": clue_text.strip(),
+                    "type": clue_type.strip()
+                    }
+                except:
+                    pass
             elif section == "alibis" and ":" in line:
                 name, alibi = line.split(":", 1)
-                result["alibis"][name.strip()] = alibi.strip()
+                result["alibis"][name.strip().lstrip("- ").strip()] = alibi.strip()
             elif section == "motives" and ":" in line:
                 name, motive = line.split(":", 1)
                 result["motives"][name.strip()] = motive.strip()
