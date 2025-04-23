@@ -9,6 +9,7 @@ from .serializers import RegisterSerializer, CaseInstanceSerializer, PublicCaseS
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
 from .models import Case, CaseInstance, Person, Clue
 from dotenv import load_dotenv
+from django.db.models import Case as DCase, When, Value, IntegerField
 import os, re, json
 
 
@@ -263,6 +264,34 @@ class GenerateCaseBatchView(APIView):
 
 class CaseView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    def get(self, request):
+        cases = Case.objects.annotate(
+            difficulty_order=DCase(
+                When(difficulty="easy", then=Value(1)),
+                When(difficulty="medium", then=Value(2)),
+                When(difficulty="hard", then=Value(3)),
+                output_field=IntegerField()    
+            )
+        ).order_by('difficulty_order', '-created_at')
+        serializer = PublicCaseSerializer(cases, many=True)
+        return Response(serializer.data)
+
+
+class ActiveCaseView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        instance = CaseInstance.objects.filter(user=request.user, status="active").first()
+        if not instance:
+            return Response({"active": False})
+        
+        return Response({
+            "active": True,
+            "case_id": instance.case.id,
+            "case_title": instance.case.title,
+            "lives_remaining": instance.lives_remaining
+        })
+    
 
 class CaseDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -277,13 +306,13 @@ class CaseDetailView(APIView):
             serializer = PublicCaseSerializer(case)
 
         return Response(serializer.data)   
-     
-    def post(self,request):
-        serializer = CaseSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(owner=request.user)
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+    # NEXT BLOCK OF CODE, SHOULD BE REINTRODUCED AS AN ADMIN ABILITY TO CREATE NEW CASES 
+    # def post(self,request):
+    #     serializer = CaseSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save(owner=request.user)
+    #         return Response(serializer.data, status=201)
+    #     return Response(serializer.errors, status=400)
 
 class StartCaseView(APIView):
     permission_classes = [IsAuthenticated]
@@ -302,10 +331,10 @@ class StartCaseView(APIView):
         serializer= CaseInstanceSerializer(instance)
         return Response(serializer.data, status=201)
 
-class CaseDetailView(APIView):
-    def get(self,request, pk):
-        case= Case.objects.get(pk=pk)
-        return Response(CaseSerializer(case).data)
+# class CaseDetailView(APIView):
+#     def get(self,request, pk):
+#         case= Case.objects.get(pk=pk)
+#         return Response(CaseSerializer(case).data)
     
 class GeneratePersonView(APIView):
     def post(self, request): 

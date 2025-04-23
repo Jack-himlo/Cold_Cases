@@ -4,18 +4,23 @@ import axios from "../api/axiosInstance";
 import React from "react";
 
 export default function CaseInvestigation(){
-    const {id} = useParams() //gets id from url params
+    const {id: caseId} = useParams() //gets id from url params
     const [caseData, setCaseData] = useState(null)
 
     useEffect(() => {
-        axios.get(`cases/${id}/`)
-            .then((res) => {
-                console.log("Raw response:", res.data);
-                setCaseData(res.data); // now this actually runs
-            })
-            .catch(err => console.error('Error loading case: ', err));
-    }, [id]);
-    
+        const fetchCase = async () => {
+          const token = localStorage.getItem("accessToken"); 
+          try {
+            const response = await axios.get(`/cases/${caseId}/`);
+            setCaseData(response.data); // or update state here
+          } catch (err) {
+            console.error("Error loading case:", err);
+          }
+        };
+      
+        fetchCase();
+      }, [caseId]);
+
 
     if (!caseData) return <p>Loading case...</p>
     console.log("Title:", caseData.title)
