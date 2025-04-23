@@ -34,6 +34,13 @@ class Case(models.Model):
         null=True,
         blank=True
     )
+    crime_scene_description = models.TextField(blank=True, null=True)
+    victim_name = models.CharField(max_length=255, blank=True, null=True)
+    victim_occupation = models.CharField(max_length=255, blank=True, null=True)
+    cause_of_death = models.CharField(max_length=255, blank=True, null=True)
+    last_known_location = models.CharField(max_length=255, blank=True, null=True)
+    background_story = models.TextField(blank=True, null=True)   
+    
 
     def __str__(self):
         return self.title
@@ -55,6 +62,7 @@ class Clue(models.Model):
     text = models.TextField()
     order = models.PositiveIntegerField(default=0)
     character = models.CharField(max_length=255, blank = True, null=True)
+    is_red_herring = models.BooleanField(default=False) 
 
     def __str__(self):
         return f"Clue {self.order} for {self.case.title}"

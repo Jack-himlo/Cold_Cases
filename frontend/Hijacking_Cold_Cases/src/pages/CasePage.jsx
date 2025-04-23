@@ -7,7 +7,7 @@ export default function CasePage() {
     const [cases, setCases] = useState ([]);
     
     useEffect (() => {
-        axios.get("/api/cases/")
+        axios.get("cases/")
         .then((res) => setCases(res.data))
         .catch((err) => console.error("Error fetching cases:", err));
     }, []);

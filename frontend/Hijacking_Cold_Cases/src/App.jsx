@@ -7,6 +7,7 @@ import CasePage from './pages/CasePage'
 import PrivateRoute from './components/PrivateRoute';
 import React from 'react'
 import CaseInvestigation from './pages/CaseInvestigation'
+import LandingPage from './pages/LandingPage'
 function App() {
   
 
@@ -20,6 +21,7 @@ function App() {
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
       <Route path="/cases" element={<CasePage />} />
       <Route path="/cases/:id" element={<PrivateRoute><CaseInvestigation /></PrivateRoute>} />
+      <Route path="/home" element={<PrivateRoute><LandingPage /></PrivateRoute>} />
     </Routes>
   </>
   )

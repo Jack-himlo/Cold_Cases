@@ -25,6 +25,7 @@ export default function Navbar() {
                 )}
                 {isLoggedIn && (
                 <>    
+                    <li><Link to="/home">Home</Link></li>
                     <li><Link to="/profile">Profile</Link></li>
                     <li><button onClick={handleLogout}>Logout</button></li>
                 </>

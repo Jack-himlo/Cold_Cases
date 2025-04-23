@@ -5,11 +5,11 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, CaseSerializer, CaseInstanceSerializer
+from .serializers import RegisterSerializer, CaseInstanceSerializer, PublicCaseSerializer, SolvedCaseSerializer
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
 from .models import Case, CaseInstance, Person, Clue
 from dotenv import load_dotenv
-import os, re 
+import os, re, json
 
 
 
@@ -65,14 +65,14 @@ class GenerateCaseBatchView(APIView):
 
                 try:
                     res = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
+                        model="gpt-4",
                         messages=[{"role":"user", "content": prompt}]
                     )
                     content = res.choices[0].message.content
                     print("Raw GPT response :\n", content)
                     
 
-                    parsed = self.parse_openai_response(content)
+                    parsed = json.loads(content)
 
                     case = Case.objects.create(
                         title=parsed["title"] or "Untitled Case",
@@ -82,14 +82,24 @@ class GenerateCaseBatchView(APIView):
                         owner=request.user,
                         killer=parsed["killer"],
                         alibis=parsed.get("alibis", {}),
-                        justification = parsed.get("justification", "")
-                    )
-                    for idx, (name, clue_data) in enumerate(parsed["clues"].items(), start=1):
-                        full_text = f"{name}: {clue_data['text']} ({clue_data['type']})"
-                        character_match = re.match(r"-\s*(.*)", name) or re.match(r"(.*?):", clue_data['text'])
-                        character_name = character_match.group(1).strip() if character_match else None
+                        justification = parsed.get("justification", ""),
+                        crime_scene_description=parsed.get("crime_scene_description", ""),
+                        victim_name=parsed["victim"]["name"],
+                        victim_occupation=parsed["victim"]["occupation"],
+                        cause_of_death=parsed["victim"]["cause_of_death"],
+                        last_known_location=parsed["victim"]["last_known_location"],
+                        background_story=parsed["victim"]["background_story"],
 
-                        Clue.objects.create(case=case, order=idx, text=full_text, character= character_name)
+                    )
+                    for idx, clue_data in enumerate(parsed["clues"], start=1):
+                        Clue.objects.create(
+                            case=case,
+                            order=idx,
+                            text=clue_data["text"],
+                            character=clue_data["character"],
+                            is_red_herring=clue_data.get("is_red_herring", False)
+                        )
+
 
                     created_cases.append({
                         "title": case.title, 
@@ -117,16 +127,24 @@ class GenerateCaseBatchView(APIView):
         ])
         return f"""
 
-        Generate a detective-style murder mystery game where the user is the detective who snuck away from a mandatory training and found a cold case closet. 
+        Generate a detective-style murder mystery game where the user is the detective. 
+        The goal is to provide an engaging story that all ties into one another with:
+        - A compelling victim
+        - A believable crime scene
+        - Multiple suspects (with varied alibis)
+        - Clues (some true, some misleading)
+        - A designated killer
+        
         
         Include:
 
         Title: [unique One-line case title]
         Summary: [1-paragraph story overview]
         Clues: assign each clue to a character
-        Provide 3 clues. Each clue should be a piece of physical evidence, a witness statement, a video, or a suspicious object.
+        Provide multiple clues. Each clue should be a piece of physical evidence, a witness statement, a video, or a suspicious object.
 
         Each clue must be assigned to a specific suspect listed below and marked as either a real lead or a red herring.
+        Do NOT label clues in the text as “Red Herring” or “Real Lead.” Instead, use `is_red_herring` as a field.
 
         Format:
         - [Character Name]: [Clue description] - [Real Lead or Red Herring]
@@ -148,66 +166,97 @@ class GenerateCaseBatchView(APIView):
         Justification: [Brief explanation of why this person committed the crime]
         Characters:
         {body}
+
+        Return the case as a JSON object with the following fields:
+
+        {{
+          "title": "...",
+          "summary": "...",
+         "victim": {{
+           "name": "...",
+           "occupation": "...",
+            "cause_of_death": "...",
+            "last_known_location": "...",
+            "background_story": "..."
+          }},
+          "crime_scene_description": "...",
+          "characters": [
+            {{
+              "name": "...",
+             "occupation": "...",
+             "alibi": "..."
+           }}
+          ],
+          "clues": [
+            {{
+              "text": "...",
+              "character": "...",
+              "is_red_herring": false
+            }}
+         ],
+          "killer": "...",
+          "justification": "..."
+        }}
         """
-    def parse_openai_response(self, text):
-        lines = text.splitlines()
-        result = {
-            "title": "",
-            "summary": "",
-            "clues": {},
-            "alibis": {},
-            "motives": {},
-            "killer": "",
-            "justification": "",
-            "characters": {}
-        }
+    # def parse_openai_response(self, text):
+    #     lines = text.splitlines()
+    #     result = {
+    #         "title": "",
+    #         "summary": "",
+    #         "clues": {},
+    #         "alibis": {},
+    #         "motives": {},
+    #         "killer": "",
+    #         "justification": "",
+    #         "characters": {}
+    #     }
 
-        section = None
-        for line in lines:
-            line = line.strip()
+    #     section = None
+    #     for line in lines:
+    #         line = line.strip()
 
-            if line.lower().startswith("title:"):
-                result["title"] = line.split(":", 1)[1].strip()
-                section = None
-            elif line.lower().startswith("summary:"):
-                result["summary"] = line.split(":", 1)[1].strip()
-                section = None
-            elif line.lower().startswith("clues:"):
-                section = "clues"
-            elif line.lower().startswith("alibis:"):
-                section = "alibis"
-            elif line.lower().startswith("motive:") or line.lower().startswith("motives:"):
-                section = "motives"
-            elif line.lower().startswith("killer:"):
-                result["killer"] = line.split(":", 1)[1].strip()
-                section = None
-            elif line.lower().startswith("characters:"):
-                section = "characters"
+    #         if line.lower().startswith("title:"):
+    #             result["title"] = line.split(":", 1)[1].strip()
+    #             section = None
+    #         elif line.lower().startswith("summary:"):
+    #             result["summary"] = line.split(":", 1)[1].strip()
+    #             section = None
+    #         elif line.lower().startswith("clues:"):
+    #             section = "clues"
+    #         elif line.lower().startswith("alibis:"):
+    #             section = "alibis"
+    #         elif line.lower().startswith("motive:") or line.lower().startswith("motives:"):
+    #             section = "motives"
+    #         elif line.lower().startswith("killer:"):
+    #             result["killer"] = line.split(":", 1)[1].strip()
+    #             section = None
+    #         elif line.lower().startswith("characters:"):
+    #             section = "characters"
 
 
-            elif section == "clues" and line.startswith("-") and ":" in line:
-                try:
-                    # Split on the first colon, and then dash
-                    name, remainder = line.split(":", 1)
-                    clue_text, clue_type = remainder.rsplit("-", 1) if "-" in remainder else (remainder, "Unknown")
-                    result["clues"][name.strip()] = {
-                    "text": clue_text.strip(),
-                    "type": clue_type.strip()
-                    }
-                except:
-                    pass
-            elif section == "alibis" and ":" in line:
-                name, alibi = line.split(":", 1)
-                result["alibis"][name.strip().lstrip("- ").strip()] = alibi.strip()
-            elif section == "motives" and ":" in line:
-                name, motive = line.split(":", 1)
-                result["motives"][name.strip()] = motive.strip()
-            elif section == "characters" and line.startswith("-"):
-                result["characters"].append(line[1:].strip())
-            elif line.lower().startswith("justification:"):
-                result["justification"] = line.split(":", 1)[1].strip()
+    #         elif section == "clues" and line.startswith("-") and ":" in line:
+    #             try:
+    #                 # Split on the first colon, and then dash
+    #                 name, remainder = line.split(":", 1)
+    #                 clue_text, clue_type = remainder.rsplit("-", 1) if "-" in remainder else (remainder, "Unknown")
+    #                 result["clues"][name.strip()] = {
+    #                 "text": clue_text.strip(),
+    #                 "type": clue_type.strip()
+    #                 }
+    #             except:
+    #                 pass
+    #         elif section == "alibis" and ":" in line:
+    #             name, alibi = line.split(":", 1)
+    #             result["alibis"][name.strip().lstrip("- ").strip()] = alibi.strip()
+    #         elif section == "motives" and ":" in line:
+    #             name, motive = line.split(":", 1)
+    #             result["motives"][name.strip()] = motive.strip()
+    #         elif section == "characters" and line.startswith("-"):
+    #             result["characters"].append(line[1:].strip())
+    #         elif line.lower().startswith("justification:"):
+    #             result["justification"] = line.split(":", 1)[1].strip()
 
-        return result
+    #     return result
 
 
 
@@ -215,11 +264,20 @@ class GenerateCaseBatchView(APIView):
 class CaseView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self,request):
-        cases = Case.objects.all().order_by('-created_at')
-        serializer = CaseSerializer(cases, many=True)
-        return Response(serializer.data)
-    
+class CaseDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        case = Case.objects.get(pk=pk)
+        instance = CaseInstance.objects.filter(user=request.user, case=case).first()
+
+        if instance and instance.status == "solved":
+            serializer = SolvedCaseSerializer(case)
+        else:
+            serializer = PublicCaseSerializer(case)
+
+        return Response(serializer.data)   
+     
     def post(self,request):
         serializer = CaseSerializer(data=request.data)
         if serializer.is_valid():

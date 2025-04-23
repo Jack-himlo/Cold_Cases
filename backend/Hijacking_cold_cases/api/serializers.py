@@ -28,11 +28,19 @@ class ClueSerializer(serializers.ModelSerializer):
    
    class Meta:
         model = Clue
-        fields = '__all__'
+        fields = ['id', 'text', 'order', 'character']
 
-class CaseSerializer(serializers.ModelSerializer):
-    clues = ClueSerializer(many=True, read_only=True)
-    alibis = serializers.JSONField(read_only=True)
+class PublicCaseSerializer(serializers.ModelSerializer):
+    clues = ClueSerializer(many=True, read_only=True, source='clues')
+
     class Meta:
         model = Case
-        fields = '__all__'
+        fields = [
+            'id', 'title', 'summary', 'difficulty', 'status',
+            'victim_name', 'victim_occupation', 'cause_of_death',
+            'last_known_location', 'background_story', 'crime_scene_description',
+            'clues'
+        ]
+class SolvedCaseSerializer(PublicCaseSerializer):
+    class Meta(PublicCaseSerializer.Meta):
+        fields = PublicCaseSerializer.Meta.fields + ['killer', 'justification']

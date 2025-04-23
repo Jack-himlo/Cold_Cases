@@ -1,6 +1,7 @@
 import { useState } from "react"
 import {Link, useNavigate} from 'react-router-dom'
 import axios from 'axios'
+import React from "react";
 
 
 // login component recieves "onLogin" Prop 
@@ -48,7 +49,7 @@ export default function Login({onLogin}) {
             // call the "onLogin" function passed as a prop
             onLogin?.(formData.username);
             // Redirect to profile
-            navigate('/profile');
+            navigate('/home');
             } catch (err) {
             //show an error if any field is missing
             console.error('Login error', err)
