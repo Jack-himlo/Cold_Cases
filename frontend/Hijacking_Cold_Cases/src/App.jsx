@@ -5,8 +5,8 @@ import Login from './pages/Login'
 import Profile from './pages/Profile'
 import CasePage from './pages/CasePage'
 import PrivateRoute from './components/PrivateRoute';
-
-
+import React from 'react'
+import CaseInvestigation from './pages/CaseInvestigation'
 function App() {
   
 
@@ -18,7 +18,8 @@ function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-      <Route path="/case/:id" element={<CasePage />} />
+      <Route path="/cases" element={<CasePage />} />
+      <Route path="/cases/:id" element={<PrivateRoute><CaseInvestigation /></PrivateRoute>} />
     </Routes>
   </>
   )

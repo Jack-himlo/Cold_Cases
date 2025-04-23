@@ -1,5 +1,5 @@
 import {Link, useNavigate} from 'react-router-dom'
-
+import React from 'react';
 export default function Navbar() {
     const navigate = useNavigate();
     const isLoggedIn = !!localStorage.getItem('accessToken');
