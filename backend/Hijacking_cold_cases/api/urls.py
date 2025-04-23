@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     RegisterView, ProfileView, CaseView, StartCaseView, CaseDetailView,
-    GenerateCaseBatchView, GeneratePersonView, ActiveCaseView
+    GenerateCaseBatchView, GeneratePersonView, ActiveCaseView, PersonListView
 )
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('cases/<int:pk>/start/', StartCaseView.as_view(), name='start_case'),
     path('generate-case-batch/', GenerateCaseBatchView.as_view(), name='generate_case_batch'),
     path('generate-people/', GeneratePersonView.as_view(), name='generate_people'),
+    path("people/", PersonListView.as_view()), 
     path('active-case/', ActiveCaseView.as_view(), name='active_case'),
 
     # JWT Token auth endpoints

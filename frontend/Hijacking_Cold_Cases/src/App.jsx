@@ -20,7 +20,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
       <Route path="/cases" element={<CasePage />} />
-      <Route path="/cases/:id" element={<PrivateRoute><CaseInvestigation /></PrivateRoute>} />
+      <Route path="/case/:id" element={<PrivateRoute><CaseInvestigation /></PrivateRoute>} />
       <Route path="/home" element={<PrivateRoute><LandingPage /></PrivateRoute>} />
     </Routes>
   </>

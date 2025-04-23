@@ -3,22 +3,28 @@ import { useParams, Link } from "react-router-dom";
 import axios from "../api/axiosInstance";
 import React from "react";
 import VictimCard from "../components/VictimCard";
+import SuspectCard from "../components/SuspectCard";
 
 export default function CaseInvestigation() {
-  const { id: caseId } = useParams(); // Get ID from URL
+  const { id: caseId } = useParams();
   const [caseData, setCaseData] = useState(null);
+  const [people, setPeople] = useState([]);
 
   useEffect(() => {
-    const fetchCase = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`/cases/${caseId}/`);
-        setCaseData(response.data);
+        const [caseRes, peopleRes] = await Promise.all([
+          axios.get(`/cases/${caseId}/`),
+          axios.get("/people/"),
+        ]);
+        setCaseData(caseRes.data);
+        setPeople(peopleRes.data);
       } catch (err) {
-        console.error("Error loading case:", err);
+        console.error("Error loading case or people:", err);
       }
     };
 
-    fetchCase();
+    fetchData();
   }, [caseId]);
 
   if (!caseData) return <p>Loading case...</p>;
@@ -31,13 +37,14 @@ export default function CaseInvestigation() {
       {/* Case Summary */}
       <p className="italic text-gray-600 mb-4">{caseData.summary}</p>
 
+      {/* Victim Card */}
       <VictimCard
         victim={caseData.victim_name}
         occupation={caseData.victim_occupation}
         causeOfDeath={caseData.cause_of_death}
         lastKnownLocation={caseData.last_known_location}
         backgroundStory={caseData.background_story}
-        />
+      />
 
       {/* Back Link */}
       <Link to="/cases" className="text-blue-600 underline mb-4 inline-block">
@@ -52,18 +59,19 @@ export default function CaseInvestigation() {
             (clue) => clue.character?.toLowerCase() === name.toLowerCase()
           );
 
+          const person = people.find(
+            (p) =>
+              `${p.first_name} ${p.last_name}`.toLowerCase() === name.toLowerCase()
+          );
+
           return (
-            <div
+            <SuspectCard
               key={name}
-              className="bg-white p-4 rounded shadow hover:shadow-lg transition duration-200"
-            >
-              <h3 className="font-bold text-lg">{name}</h3>
-              <p className="text-sm mt-1">{alibi}</p>
-              <p className="text-sm text-gray-800 mt-2">
-                <span className="font-semibold">Clue:</span>{" "}
-                {clueObj ? clueObj.text : "No Clue Assigned"}
-              </p>
-            </div>
+              name={name}
+              alibi={alibi}
+              clueText={clueObj?.text}
+              photoUrl={person?.picture || person?.thumbnail_picture}
+            />
           );
         })}
       </div>

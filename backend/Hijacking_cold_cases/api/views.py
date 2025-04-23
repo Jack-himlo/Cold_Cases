@@ -5,8 +5,8 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, CaseInstanceSerializer, PublicCaseSerializer, SolvedCaseSerializer
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser
+from .serializers import RegisterSerializer, CaseInstanceSerializer, PublicCaseSerializer, SolvedCaseSerializer, PersonSerializer
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny
 from .models import Case, CaseInstance, Person, Clue
 from dotenv import load_dotenv
 from django.db.models import Case as DCase, When, Value, IntegerField
@@ -38,8 +38,8 @@ class ProfileView(APIView):
 
 CHARACTERS_PER_VIEW = {
     "easy": 3,
-    "medium" : 4,
-    "hard" : 5
+    "medium" : 5,
+    "hard" : 7
 }
 
 class GenerateCaseBatchView(APIView):
@@ -54,7 +54,7 @@ class GenerateCaseBatchView(APIView):
         created_cases = []
 
         for difficulty in ["easy","medium","hard"]:
-            for _ in range(5):#  range(x) = cases per difficulty
+            for _ in range(1):#  range(x) = cases per difficulty
                 num_needed = CHARACTERS_PER_VIEW[difficulty]
 
                 if len(people_pool) < num_needed:
@@ -74,6 +74,10 @@ class GenerateCaseBatchView(APIView):
                     
 
                     parsed = json.loads(content)
+                    characters = parsed.get("characters", [])
+                    parsed["alibis"] = {
+                        char["name"]: char["alibi"] for char in characters if "alibi" in char
+                        }
 
                     case = Case.objects.create(
                         title=parsed["title"] or "Untitled Case",
@@ -154,11 +158,13 @@ class GenerateCaseBatchView(APIView):
          - Melvin Warren: A bloodied glove found behind the bakery - Real Lead
          - Caroline Long: A torn love letter in her handwriting - Red Herring
 
-        Alibis:
-        -Provide one alibi for each character listed below. Each alibi should include where the person claims to be at the time of the murder, what they were doing, and whether there were any witnesses.
-        - [Person Name]: [Alibi description]
-        - ...
-
+        + Alibis:
+            -Provide one alibi for each character listed below. Each alibi should include where the person claims to be at the time of the murder, what they were doing, and whether there were any witnesses.
+        + - You must provide **one alibi per character** listed below. Each alibi must include:
+        +     - Where the suspect was
+        +     - What they were doing
+        +     - Whether anyone can verify their story
+        + - If you leave this blank, the case will be considered incomplete and rejected.
         Motive:
         - [Person Name]: [Their potential motive]
         - ...
@@ -198,6 +204,13 @@ class GenerateCaseBatchView(APIView):
           "killer": "...",
           "justification": "..."
         }}
+
+        Important: Return a raw, valid JSON object.
+            - Use only double quotes ("") for property names and strings.
+            - Do NOT include trailing commas.
+            - Do NOT include Markdown formatting.
+            - Do NOT explain the JSON or wrap it in backticks.
+
         """
     # def parse_openai_response(self, text):
     #     lines = text.splitlines()
@@ -338,7 +351,7 @@ class StartCaseView(APIView):
     
 class GeneratePersonView(APIView):
     def post(self, request): 
-        count=60
+        count=100
         url = f"http://randomuser.me/api/?results={count}"
         response = requests.get(url)
 
@@ -372,5 +385,12 @@ class GeneratePersonView(APIView):
             return Response({"error": "Failed to fetch data from RandomUser API"}, status=status.HTTP_502_BAD_GATEWAY)
 
 
+class PersonListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        people = Person.objects.all()
+        serializer = PersonSerializer(people, many=True)
+        return Response(serializer.data)
 # Create your views here.
 

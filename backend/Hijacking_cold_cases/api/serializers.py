@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Case, CaseInstance, Clue  
+from .models import User, Case, CaseInstance, Clue , Person
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -16,6 +16,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             password= validated_data['password']
         )
         return user
+class PersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Person
+        fields = ['first_name', 'last_name', 'picture', 'thumbnail_picture']
         
 
 class CaseInstanceSerializer(serializers.ModelSerializer):

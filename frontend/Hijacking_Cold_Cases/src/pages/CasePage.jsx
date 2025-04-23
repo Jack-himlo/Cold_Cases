@@ -18,7 +18,7 @@ export default function CasePage() {
     try {
       const res = await axios.post(`/cases/${caseId}/start/`);
       console.log("Case started:", res.data);
-      navigate(`/cases/${caseId}`);
+      navigate(`/case/${caseId}`);
     } catch (err) {
       console.error("Failed to start case:", err);
     }
