@@ -43,10 +43,12 @@ class PublicCaseSerializer(serializers.ModelSerializer):
     clues = ClueSerializer(many=True, read_only=True)
     evidence = EvidenceSerializer(many=True, read_only=True)
     alibis = serializers.SerializerMethodField()
+    victim = PersonSerializer(read_only=True)
+
     class Meta:
         model = Case
         fields = [
-            'id', 'title', 'summary', 'difficulty', 'status',
+            'id', 'title', 'summary', 'difficulty', 'status','victim',
             'victim_name', 'victim_occupation', 'cause_of_death',
             'last_known_location', 'background_story', 'crime_scene_description',
             'clues','alibis', 'evidence'

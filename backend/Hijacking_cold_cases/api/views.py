@@ -61,6 +61,8 @@ class GenerateCaseBatchView(APIView):
                     return Response({"error": "Not enough people to generate a{difficulty} case."}, status=400)
                 
                 selected_people = random.sample(people_pool, num_needed)
+                victim_person = random.choice(selected_people)
+                people_pool.remove(victim_person)
 
                 prompt = self.build_prompt(selected_people)
 
@@ -94,6 +96,8 @@ class GenerateCaseBatchView(APIView):
                         cause_of_death=parsed["victim"]["cause_of_death"],
                         last_known_location=parsed["victim"]["last_known_location"],
                         background_story=parsed["victim"]["background_story"],
+                        victim=victim_person,
+
 
                     )
                     for idx, clue_data in enumerate(parsed["clues"], start=1):

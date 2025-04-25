@@ -35,6 +35,15 @@ class Case(models.Model):
         blank=True
     )
     crime_scene_description = models.TextField(blank=True, null=True)
+    
+    victim = models.ForeignKey(
+    'Person',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='victim_cases'
+    )
+
     victim_name = models.CharField(max_length=255, blank=True, null=True)
     victim_occupation = models.CharField(max_length=255, blank=True, null=True)
     cause_of_death = models.CharField(max_length=255, blank=True, null=True)
