@@ -244,65 +244,43 @@ class GenerateCaseBatchView(APIView):
             - Do NOT explain the JSON or wrap it in backticks.
 
         """
-    # def parse_openai_response(self, text):
-    #     lines = text.splitlines()
-    #     result = {
-    #         "title": "",
-    #         "summary": "",
-    #         "clues": {},
-    #         "alibis": {},
-    #         "motives": {},
-    #         "killer": "",
-    #         "justification": "",
-    #         "characters": {}
-    #     }
+   
+# views.py
+class GuessKillerView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    #     section = None
-    #     for line in lines:
-    #         line = line.strip()
+    def post(self, request, pk):
+        guessed_name = request.data.get("guess")
+        if not guessed_name:
+            return Response({"error": "Missing guess field"}, status=400)
 
-    #         if line.lower().startswith("title:"):
-    #             result["title"] = line.split(":", 1)[1].strip()
-    #             section = None
-    #         elif line.lower().startswith("summary:"):
-    #             result["summary"] = line.split(":", 1)[1].strip()
-    #             section = None
-    #         elif line.lower().startswith("clues:"):
-    #             section = "clues"
-    #         elif line.lower().startswith("alibis:"):
-    #             section = "alibis"
-    #         elif line.lower().startswith("motive:") or line.lower().startswith("motives:"):
-    #             section = "motives"
-    #         elif line.lower().startswith("killer:"):
-    #             result["killer"] = line.split(":", 1)[1].strip()
-    #             section = None
-    #         elif line.lower().startswith("characters:"):
-    #             section = "characters"
+        try:
+            case = Case.objects.get(pk=pk)
+            instance = CaseInstance.objects.get(case=case, user=request.user)
+        except Case.DoesNotExist:
+            return Response({"error": "Case not found"}, status=404)
+        except CaseInstance.DoesNotExist:
+            return Response({"error": "Case instance not started"}, status=403)
 
+        if instance.status != "active":
+            return Response({"error": "Case is not active"}, status=400)
 
-    #         elif section == "clues" and line.startswith("-") and ":" in line:
-    #             try:
-    #                 # Split on the first colon, and then dash
-    #                 name, remainder = line.split(":", 1)
-    #                 clue_text, clue_type = remainder.rsplit("-", 1) if "-" in remainder else (remainder, "Unknown")
-    #                 result["clues"][name.strip()] = {
-    #                 "text": clue_text.strip(),
-    #                 "type": clue_type.strip()
-    #                 }
-    #             except:
-    #                 pass
-    #         elif section == "alibis" and ":" in line:
-    #             name, alibi = line.split(":", 1)
-    #             result["alibis"][name.strip().lstrip("- ").strip()] = alibi.strip()
-    #         elif section == "motives" and ":" in line:
-    #             name, motive = line.split(":", 1)
-    #             result["motives"][name.strip()] = motive.strip()
-    #         elif section == "characters" and line.startswith("-"):
-    #             result["characters"].append(line[1:].strip())
-    #         elif line.lower().startswith("justification:"):
-    #             result["justification"] = line.split(":", 1)[1].strip()
+        correct = guessed_name.strip().lower() == case.killer.strip().lower()
 
-    #     return result
+        if correct:
+            instance.status = "solved"
+            instance.save()
+            return Response({"result": "correct", "message": "You solved the case!"})
+        else:
+            instance.lives_remaining -= 1
+            if instance.lives_remaining <= 0:
+                instance.status = "failed"
+            instance.save()
+            return Response({
+                "result": "incorrect",
+                "message": f"Wrong guess. {instance.lives_remaining} lives left.",
+                "status": instance.status
+            }, status=200)
 
 
 
