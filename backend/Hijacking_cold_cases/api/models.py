@@ -67,6 +67,23 @@ class Clue(models.Model):
     def __str__(self):
         return f"Clue {self.order} for {self.case.title}"
 
+# models.py
+
+class Evidence(models.Model):
+    case = models.ForeignKey(
+        Case,
+        related_name='evidence',
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(max_length=255)  # e.g. "Bloody Knife"
+    description = models.TextField()  # detailed explanation of the evidence
+    image_url = models.URLField(blank=True, null=True)  # optional photo
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
 class Person(models.Model):
     gender =models.CharField(max_length=15)
     first_name = models.CharField(max_length=255 )
@@ -80,6 +97,6 @@ class Person(models.Model):
     nationality = models.CharField(max_length=10)
 
     def __str__(self):
-        return f"{self.name}-{self.location} "
+        return f"{self.first_name} {self.last_name} - {self.location}"
 
 # Create your models here.

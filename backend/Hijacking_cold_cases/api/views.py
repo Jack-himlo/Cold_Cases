@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import RegisterSerializer, CaseInstanceSerializer, PublicCaseSerializer, SolvedCaseSerializer, PersonSerializer
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny
-from .models import Case, CaseInstance, Person, Clue
+from .models import Case, CaseInstance, Person, Clue, Evidence
 from dotenv import load_dotenv
 from django.db.models import Case as DCase, When, Value, IntegerField
 import os, re, json
@@ -104,7 +104,35 @@ class GenerateCaseBatchView(APIView):
                             character=clue_data["character"],
                             is_red_herring=clue_data.get("is_red_herring", False)
                         )
+                    evidence_prompt = f"""
+                    Based on the following murder case, generate 2-3 pieces of general evidence. These should not be tied to any specific character — they are general items found at the crime scene (e.g., a bloody knife, a torn contract, a witness statement).
 
+                    Summary:
+                    {parsed['summary']}
+
+                    Return JSON like:
+                    [
+                        {{
+                            "title": "Bloody Knife",
+                            "description": "Found under the bed with fingerprints.",
+                            "image_url": ""
+                        }}
+                    ]
+                    """
+
+                    evidence_res = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[{"role": "user", "content": evidence_prompt}]
+                    )
+                    evidence_json = json.loads(evidence_res.choices[0].message.content)
+
+                    for evi in evidence_json:
+                        Evidence.objects.create(
+                            case=case,
+                            title=evi["title"],
+                            description=evi["description"],
+                            image_url=evi.get("image_url", "")
+                        )
 
                     created_cases.append({
                         "title": case.title, 

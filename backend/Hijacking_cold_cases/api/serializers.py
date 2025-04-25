@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Case, CaseInstance, Clue , Person
+from .models import User, Case, CaseInstance, Clue , Person, Evidence
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -34,8 +34,14 @@ class ClueSerializer(serializers.ModelSerializer):
         model = Clue
         fields = ['id', 'text', 'order', 'character']
 
+class EvidenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evidence
+        fields = "__all__"
+
 class PublicCaseSerializer(serializers.ModelSerializer):
     clues = ClueSerializer(many=True, read_only=True)
+    evidence = EvidenceSerializer(many=True, read_only=True)
     alibis = serializers.SerializerMethodField()
     class Meta:
         model = Case
@@ -43,7 +49,7 @@ class PublicCaseSerializer(serializers.ModelSerializer):
             'id', 'title', 'summary', 'difficulty', 'status',
             'victim_name', 'victim_occupation', 'cause_of_death',
             'last_known_location', 'background_story', 'crime_scene_description',
-            'clues','alibis'
+            'clues','alibis', 'evidence'
         ]
     def get_alibis(self, obj):
         return obj.alibis if obj.alibis else {}
