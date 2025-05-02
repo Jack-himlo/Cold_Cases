@@ -1,38 +1,55 @@
+// src/components/SuspectCard.jsx
 import React, { useState } from "react";
 
-export default function SuspectCard({ name, alibi, clueText, photoUrl }) {
+export default function SuspectCard({
+  name,
+  alibi,
+  clueText,
+  photoUrl,
+  onGuess,
+  isDisabled,
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleToggle = () => setIsOpen((prev) => !prev);
-
   return (
-    <div className="bg-white p-4 rounded shadow hover:shadow-lg transition duration-200">
-      <h3 className="font-bold text-lg">{name}</h3>
+    <div className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-md">
+      {photoUrl && (
+        <img
+          src={photoUrl}
+          alt={name}
+          className="w-full h-40 object-cover rounded-lg mb-3"
+        />
+      )}
+
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{name}</h3>
 
       <button
-        onClick={handleToggle}
-        className="mt-2 px-4 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-gray-900 text-white py-1 px-3 mt-2 rounded hover:bg-gray-700"
       >
         {isOpen ? "Close File" : "Open File"}
       </button>
 
       {isOpen && (
-        <div className="mt-4">
-          {photoUrl && (
-            <img
-              src={photoUrl}
-              alt={`${name}'s profile`}
-              className="w-24 h-24 object-cover rounded-full mx-auto mb-2"
-            />
+        <div className="mt-3 space-y-2">
+          <p><strong>Alibi:</strong> {alibi}</p>
+          {clueText && (
+            <p><strong>Clue:</strong> {clueText}</p>
           )}
-          <p className="text-sm mt-2">
-            <strong>Alibi:</strong> {alibi}
-          </p>
-          <p className="text-sm text-gray-800 mt-2">
-            <strong>Clue:</strong> {clueText || "No Clue Assigned"}
-          </p>
         </div>
       )}
+
+      <button
+        onClick={() => onGuess(name)}
+        disabled={isDisabled}
+        className={`mt-4 w-full py-2 rounded transition ${
+          isDisabled
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-red-600 hover:bg-red-500 text-white"
+        }`}
+      >
+        Guess {name} is the Killer
+      </button>
     </div>
   );
 }

@@ -60,6 +60,7 @@ class CaseInstance(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     lives_remaining = models.IntegerField(default=3)
     status = models.CharField(max_length=20, default='active')  # active, failed, solved
+    guesses_made = models.IntegerField(default=0) 
 
     class Meta:
         unique_together = ('user', 'case')

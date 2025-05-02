@@ -2,16 +2,34 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axiosInstance";
 import React from "react";
+import './CasePage.css';
+
+
+
 
 export default function CasePage() {
   const [cases, setCases] = useState([]);
+  const [activeCaseId, setActiveCaseId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
-      .get("cases/")
-      .then((res) => setCases(res.data))
-      .catch((err) => console.error("Error fetching cases:", err));
+    const fetchCasesAndActive = async () => {
+      try {
+        const [casesRes, activeRes] = await Promise.all([
+          axios.get("/cases/"),
+          axios.get("/active-case/"),
+        ]);
+
+        setCases(casesRes.data);
+        if (activeRes.data.active) {
+          setActiveCaseId(activeRes.data.case_id);
+        }
+      } catch (err) {
+        console.error("Error fetching cases or active case:", err);
+      }
+    };
+
+    fetchCasesAndActive();
   }, []);
 
   const handleStartCase = async (caseId) => {
@@ -25,27 +43,33 @@ export default function CasePage() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Cold Case Files</h1>
-      <div className="grid gap-4">
+    <div className="case-page">
+      <h1 className="case-title">Cold Case Files</h1>
+      <div>
         {cases.map((c) => (
-          <div
-            key={c.id}
-            className="block border rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-          >
-            <h2 className="text-lg font-semibold">{c.title}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              {c.summary}
-            </p>
-            <button
-              className="mt-2 text-blue-600 underline"
-              onClick={() => handleStartCase(c.id)}
-            >
-              Start Case
-            </button>
+          <div key={c.id} className="case-card">
+            <h2 className="case-name">{c.title}</h2>
+            <p className="case-summary">{c.summary}</p>
+  
+            {activeCaseId === c.id ? (
+              <button
+                className="resume-btn"
+                onClick={() => navigate(`/case/${c.id}`)}
+              >
+                Resume Case
+              </button>
+            ) : (
+              <button
+                className="start-btn"
+                onClick={() => handleStartCase(c.id)}
+              >
+                Start Case
+              </button>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
+  
 }

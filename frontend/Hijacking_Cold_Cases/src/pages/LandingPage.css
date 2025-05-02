@@ -1,0 +1,83 @@
+/* LandingPage.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+.landing-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: 'Special Elite', monospace;
+  background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+  background-color: #f5f3e7;
+  color: #1a1a1a;
+}
+
+.landing-heading {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  text-shadow: 1px 1px #ccc;
+}
+
+.landing-subheading {
+  font-size: 1.1rem;
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.landing-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.landing-links a,
+.landing-links button {
+  padding: 0.75rem 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+}
+
+.landing-links a.resume {
+  background-color: #2d6a4f;
+}
+
+.landing-links a.resume:hover {
+  background-color: #1b4332;
+}
+
+.landing-links button.start {
+  background-color: #1d3557;
+}
+
+.landing-links button.start:hover {
+  background-color: #0d1b2a;
+}
+
+.landing-links a.cases {
+  background-color: #457b9d;
+}
+
+.landing-links a.cases:hover {
+  background-color: #1d3557;
+}
+
+.landing-links a.profile {
+  background-color: #6c757d;
+}
+
+.landing-links a.profile:hover {
+  background-color: #495057;
+}

@@ -9,7 +9,7 @@ from .serializers import RegisterSerializer, CaseInstanceSerializer, PublicCaseS
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, IsAdminUser, AllowAny
 from .models import Case, CaseInstance, Person, Clue, Evidence
 from dotenv import load_dotenv
-from django.db.models import Case as DCase, When, Value, IntegerField
+from django.db.models import Case as DCase, When, Value, IntegerField, Sum;
 import os, re, json
 
 
@@ -29,12 +29,32 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=400)
     
 class ProfileView(APIView):
-    def get(self,request):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
         user = request.user
+
+        cases_solved = CaseInstance.objects.filter(user=user, status="solved").count()
+
+        total_guesses = CaseInstance.objects.filter(user=user).aggregate(
+            total=Sum('guesses_made')
+        )["total"] or 0
+
+        incorrect_guesses = total_guesses - cases_solved
+
+        success_rate = (
+            (cases_solved / total_guesses) * 100 if total_guesses > 0 else None
+        )
+
         return Response({
             "username": user.username,
             "email": user.email,
+            "cases_solved": cases_solved,
+            "failed_guesses": incorrect_guesses,
+            "success_rate": round(success_rate, 2) if success_rate is not None else "N/A"
         })
+    
+
 
 CHARACTERS_PER_VIEW = {
     "easy": 3,
@@ -245,42 +265,51 @@ class GenerateCaseBatchView(APIView):
 
         """
    
-# views.py
+
 class GuessKillerView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk):
-        guessed_name = request.data.get("guess")
-        if not guessed_name:
-            return Response({"error": "Missing guess field"}, status=400)
+def post(self, request, pk):
+    guessed_name = request.data.get("guess")
+    if not guessed_name:
+        return Response({"error": "Missing guess field"}, status=400)
 
-        try:
-            case = Case.objects.get(pk=pk)
-            instance = CaseInstance.objects.get(case=case, user=request.user)
-        except Case.DoesNotExist:
-            return Response({"error": "Case not found"}, status=404)
-        except CaseInstance.DoesNotExist:
-            return Response({"error": "Case instance not started"}, status=403)
+    try:
+        case = Case.objects.get(pk=pk)
+        instance = CaseInstance.objects.get(case=case, user=request.user)
+    except Case.DoesNotExist:
+        return Response({"error": "Case not found"}, status=404)
+    except CaseInstance.DoesNotExist:
+        return Response({"error": "Case instance not started"}, status=403)
 
-        if instance.status != "active":
-            return Response({"error": "Case is not active"}, status=400)
+    if instance.status != "active":
+        return Response({"error": "Case is not active"}, status=400)
 
-        correct = guessed_name.strip().lower() == case.killer.strip().lower()
+    
+    instance.guesses_made += 1
 
-        if correct:
-            instance.status = "solved"
-            instance.save()
-            return Response({"result": "correct", "message": "You solved the case!"})
-        else:
-            instance.lives_remaining -= 1
-            if instance.lives_remaining <= 0:
-                instance.status = "failed"
-            instance.save()
-            return Response({
-                "result": "incorrect",
-                "message": f"Wrong guess. {instance.lives_remaining} lives left.",
-                "status": instance.status
-            }, status=200)
+    correct = guessed_name.strip().lower() == case.killer.strip().lower()
+
+    if correct:
+        instance.status = "solved"
+        message = "You solved the case!"
+        result = "correct"
+    else:
+        instance.lives_remaining -= 1
+        if instance.lives_remaining <= 0:
+            instance.status = "failed"
+        message = f"Wrong guess. {instance.lives_remaining} lives left."
+        result = "incorrect"
+
+    
+    instance.save()
+
+    return Response({
+        "result": result,
+        "message": message,
+        "status": instance.status
+    }, status=200)
+
 
 
 
