@@ -44,6 +44,7 @@ class PublicCaseSerializer(serializers.ModelSerializer):
     evidence = EvidenceSerializer(many=True, read_only=True)
     alibis = serializers.SerializerMethodField()
     victim = PersonSerializer(read_only=True)
+    characters = serializers.SerializerMethodField() 
 
     class Meta:
         model = Case
@@ -51,10 +52,23 @@ class PublicCaseSerializer(serializers.ModelSerializer):
             'id', 'title', 'summary', 'difficulty', 'status','victim',
             'victim_name', 'victim_occupation', 'cause_of_death',
             'last_known_location', 'background_story', 'crime_scene_description',
-            'clues','alibis', 'evidence'
+            'clues','alibis', 'evidence','characters'
         ]
     def get_alibis(self, obj):
         return obj.alibis if obj.alibis else {}
+    def get_characters(self, obj):
+        # Build suspect list from alibis
+        if not obj.alibis:
+            return []
+        return [
+            {
+                "name": name,
+                "alibi": alibi,
+                "clueText": None,  # can hook this up later if needed
+                "photoUrl": None   # can match to person photo later
+            }
+            for name, alibi in obj.alibis.items()
+        ]
 
 class SolvedCaseSerializer(PublicCaseSerializer):
     class Meta(PublicCaseSerializer.Meta):

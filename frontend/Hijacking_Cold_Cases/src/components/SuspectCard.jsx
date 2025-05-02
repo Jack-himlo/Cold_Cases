@@ -1,15 +1,13 @@
-// src/components/SuspectCard.jsx
 import React, { useState } from "react";
 
-export default function SuspectCard({
-  name,
-  alibi,
-  clueText,
-  photoUrl,
-  onGuess,
-  isDisabled,
-}) {
+export default function SuspectCard({ suspect, onGuess, isDisabled }) {
   const [isOpen, setIsOpen] = useState(false);
+  const {
+    name,
+    alibi,
+    clueText,
+    photoUrl,
+  } = suspect || {};
 
   return (
     <div className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-md">

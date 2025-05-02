@@ -9,6 +9,7 @@ import "./CaseDesk.css";
 export default function CaseDesk() {
   const { id: caseId } = useParams();
   const [caseData, setCaseData] = useState(null);
+  const [people, setPeople] = useState([]);
   const [selectedDrawer, setSelectedDrawer] = useState(null);
 
   useEffect(() => {
@@ -20,23 +21,57 @@ export default function CaseDesk() {
         console.error("Error fetching case:", err);
       }
     };
+
+    const fetchPeople = async () => {
+      try {
+        const res = await axios.get("/people/");
+        setPeople(res.data);
+      } catch (err) {
+        console.error("Error fetching people:", err);
+      }
+    };
+
     fetchCase();
+    fetchPeople();
   }, [caseId]);
+
+  const handleGuess = (suspectName) => {
+    console.log(`Guess submitted: ${suspectName}`);
+    // Later: axios.post(`/cases/${caseId}/guess/`, { guess: suspectName });
+  };
 
   const renderDrawerContent = () => {
     if (!caseData) return null;
-  
+
     switch (selectedDrawer) {
       case "victim":
         return <VictimCard victim={caseData.victim} />;
+
       case "suspects":
         return (
           <div className="card-grid">
-            {caseData.characters?.map((char, index) => (
-              <SuspectCard key={index} suspect={char} />
-            ))}
+            {caseData.characters?.map((char, index) => {
+              const match = people.find(
+                (p) =>
+                  `${p.first_name} ${p.last_name}`.toLowerCase() ===
+                  char.name.toLowerCase()
+              );
+
+              return (
+                <SuspectCard
+                  key={index}
+                  suspect={{
+                    ...char,
+                    photoUrl: match?.picture || null,
+                  }}
+                  onGuess={handleGuess}
+                  isDisabled={false}
+                />
+              );
+            })}
           </div>
         );
+
       case "evidence":
         return (
           <div className="card-grid">
@@ -45,11 +80,11 @@ export default function CaseDesk() {
             ))}
           </div>
         );
+
       default:
         return <p>Select a drawer to begin investigating.</p>;
     }
   };
-  
 
   return (
     <div className="case-desk-container">
