@@ -1,83 +1,143 @@
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
-
+/* Base layout */
 .case-desk-container {
-  display: flex;
-  height: 100vh;
-  font-family: 'Special Elite', monospace;
-  background-color: #2e2a28; /* Dark desk tone */
-  background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'); /* Optional dark texture */
-  background-size: cover;
-  background-repeat: repeat;
-  color: #eaeaea;
-}
-
-/* Sidebar File Cabinet */
-.file-cabinet {
-  width: 260px;
-  background-color: #1a1a1a;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  border-right: 2px solid #0e0e0e;
-  box-shadow: inset -4px 0 8px rgba(0, 0, 0, 0.6);
-}
-
-.file-cabinet h2 {
-  color: #c6b28d;
-  font-size: 1.2rem;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.file-cabinet button {
-  background-color: #6a1b1a;
-  border: none;
-  padding: 0.75rem 1rem;
-  font-weight: bold;
-  color: #f5f3e7;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px #444;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.file-cabinet button:hover {
-  background-color: #a71b1b;
-}
-
-/* Main Desk with Spotlight */
-.desktop-area {
-  flex-grow: 1;
-  padding: 2rem;
-  overflow-y: auto;
-  position: relative;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 240, 0.92) 200px,
-    rgba(0, 0, 0, 0.7) 800px
-  );
-  box-shadow: inset 0 0 300px rgba(0, 0, 0, 0.75);
-}
-
-.desktop-area h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: #2d2d2d;
-}
-
-/* Grid for Cards (Suspects, Evidence, etc.) */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-/* Optional Card Style */
-.card {
-  background-color: #fdfdf8;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
-  padding: 1rem;
-}
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  
+  /* File Cabinet */
+  .file-cabinet {
+    background: #111;
+    width: 250px;
+    padding: 1rem;
+    color: #d2b48c;
+    box-shadow: inset -5px 0 10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .file-cabinet h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  /* Drawer (button) styling to look like real file drawers */
+  .file-cabinet button {
+    background: #8b0000;
+    color: white;
+    font-weight: bold;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    position: relative;
+    box-shadow: inset 0 0 0 1px #660000;
+    transition: transform 0.1s, background 0.2s;
+  }
+  
+  .file-cabinet button:hover {
+    background: #a40000;
+    transform: translateY(-1px);
+  }
+  
+  /* Simulated drawer handle */
+  .file-cabinet button::after {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 8px;
+    background: silver;
+    border-radius: 3px;
+    margin: 8px auto 0 auto;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+  
+  /* Desktop Area */
+  .desktop-area {
+    flex: 1;
+    padding: 2rem;
+    background: radial-gradient(ellipse at center, #f8f8f8 0%, #ccc 70%, #333 100%);
+    box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.4);
+    color: #333;
+    position: relative;
+    overflow-y: auto;
+  }
+  
+  /* Status bar */
+  .status-bar {
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 1rem;
+  }
+  
+  /* Resolution messages */
+  .resolution-banner {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+  
+  .resolution-banner.green {
+    background: #d1ffd1;
+    color: #005f00;
+  }
+  
+  .resolution-banner.red {
+    background: #ffd1d1;
+    color: #8b0000;
+  }
+  
+  .resolution-banner.yellow {
+    background: #fff4c2;
+    color: #8b5e00;
+  }
+  
+  /* Grid for cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  /* Forfeit button */
+  .forfeit-button {
+    background-color: #8b0000;
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  
+  .forfeit-button:hover {
+    background-color: #a40000;
+  }
+  
+  /* Optional: Opened file effect */
+  .card-opened {
+    animation: slideInFromTop 0.4s ease-out;
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  
+  @keyframes slideInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  

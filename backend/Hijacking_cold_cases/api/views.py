@@ -269,6 +269,44 @@ class GenerateCaseBatchView(APIView):
 class GuessKillerView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def post(self, request, pk):  # ✅ NOW it's part of the class
+        guessed_name = request.data.get("guess")
+        if not guessed_name:
+            return Response({"error": "Missing guess field"}, status=400)
+
+        try:
+            case = Case.objects.get(pk=pk)
+            instance = CaseInstance.objects.get(case=case, user=request.user)
+        except Case.DoesNotExist:
+            return Response({"error": "Case not found"}, status=404)
+        except CaseInstance.DoesNotExist:
+            return Response({"error": "Case instance not started"}, status=403)
+
+        if instance.status != "active":
+            return Response({"error": "Case is not active"}, status=400)
+
+        instance.guesses_made += 1
+        correct = guessed_name.strip().lower() == case.killer.strip().lower()
+
+        if correct:
+            instance.status = "solved"
+            message = "You solved the case!"
+            result = "correct"
+        else:
+            instance.lives_remaining -= 1
+            if instance.lives_remaining <= 0:
+                instance.status = "failed"
+            message = f"Wrong guess. {instance.lives_remaining} lives left."
+            result = "incorrect"
+
+        instance.save()
+
+        return Response({
+            "result": result,
+            "message": message,
+            "status": instance.status
+        }, status=200)
+
 def post(self, request, pk):
     guessed_name = request.data.get("guess")
     if not guessed_name:
@@ -333,7 +371,8 @@ class ActiveCaseView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        instance = CaseInstance.objects.filter(user=request.user, status="active").first()
+        instance = CaseInstance.objects.filter(user=request.user, status="active", is_active=True).first()
+
         if not instance:
             return Response({"active": False})
         
@@ -341,9 +380,26 @@ class ActiveCaseView(APIView):
             "active": True,
             "case_id": instance.case.id,
             "case_title": instance.case.title,
-            "lives_remaining": instance.lives_remaining
+            "lives_remaining": instance.lives_remaining,
+            "status": instance.status
         })
     
+
+class CaseInstanceStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            instance = CaseInstance.objects.get(user=request.user, case_id=pk)
+        except CaseInstance.DoesNotExist:
+            return Response({"error": "Case instance not found"}, status=404)
+
+        return Response({
+            "status": instance.status,
+            "lives_remaining": instance.lives_remaining,
+            "guesses_made": instance.guesses_made,
+        })
+
 
 class CaseDetailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -382,6 +438,29 @@ class StartCaseView(APIView):
         
         serializer= CaseInstanceSerializer(instance)
         return Response(serializer.data, status=201)
+
+
+class ForfeitCaseView(APIView):
+    """
+    Allows a user to forfeit their active case.
+    Sets `is_active` to False on the CaseInstance to simulate a soft delete.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            instance = CaseInstance.objects.get(user=request.user, case_id=pk)
+        except CaseInstance.DoesNotExist:
+            return Response({"error": "Case instance not found"}, status=404)
+
+        if instance.status != "active":
+            return Response({"error": "Case is not active"}, status=400)
+
+        instance.is_active = False
+        instance.status = "failed"
+        instance.save()
+
+        return Response({"message": "Case forfeited and marked inactive."}, status=200)
 
 # class CaseDetailView(APIView):
 #     def get(self,request, pk):

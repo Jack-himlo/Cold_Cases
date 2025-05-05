@@ -61,6 +61,7 @@ class CaseInstance(models.Model):
     lives_remaining = models.IntegerField(default=3)
     status = models.CharField(max_length=20, default='active')  # active, failed, solved
     guesses_made = models.IntegerField(default=0) 
+    is_active = models.BooleanField(default=True) 
 
     class Meta:
         unique_together = ('user', 'case')

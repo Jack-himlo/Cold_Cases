@@ -6,7 +6,6 @@ import VictimCard from "../components/VictimCard";
 import SuspectCard from "../components/SuspectCard";
 import EvidenceCard from "../components/EvidenceCard";
 
-
 export default function CaseInvestigation() {
   const { id: caseId } = useParams();
   const [caseData, setCaseData] = useState(null);
@@ -15,23 +14,22 @@ export default function CaseInvestigation() {
   const [livesRemaining, setLivesRemaining] = useState(null);
   const [caseStatus, setCaseStatus] = useState("active");
 
+  // Submit a killer guess
   const handleGuessKiller = async (guessedName) => {
     try {
-      console.log("Submitting guess:", guessedName);
       const response = await axios.post(`/cases/${caseId}/guess/`, {
         guess: guessedName,
       });
-  
+
       const data = response.data;
-  
+
       if (data.result === "correct") {
         alert("Correct! You solved the case!");
-        // Optionally refresh case data here
       } else {
         alert(`${data.message}`);
+      }
 
-        
-      // Re-fetch to update lives/status
+      // Re-fetch instance status after guess
       const instanceRes = await axios.get("/active-case/");
       if (instanceRes.data.case_id === parseInt(caseId)) {
         setLivesRemaining(instanceRes.data.lives_remaining);
@@ -39,18 +37,13 @@ export default function CaseInvestigation() {
       } else {
         setCaseStatus("inactive");
       }
-        // Optionally refresh case data here
-      }
     } catch (err) {
       console.error("Error guessing killer:", err);
       alert("There was a problem submitting your guess.");
     }
   };
-  
-  
 
-
-
+  // Load case data and status
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -60,11 +53,13 @@ export default function CaseInvestigation() {
         ]);
         setCaseData(caseRes.data);
         setPeople(peopleRes.data);
-          // Fetch current instance for status + lives
+
         const instanceRes = await axios.get("/active-case/");
+        console.log("Instance data:", instanceRes.data);
+
         if (instanceRes.data.case_id === parseInt(caseId)) {
           setLivesRemaining(instanceRes.data.lives_remaining);
-          setCaseStatus("active");
+          setCaseStatus(instanceRes.data.status || "active");
         } else {
           setCaseStatus("inactive");
         }
@@ -80,33 +75,37 @@ export default function CaseInvestigation() {
 
   return (
     <div className="p-6">
-      {/* Case Title */}
+      {/* Title */}
       <h1 className="text-2xl font-bold">{caseData.title}</h1>
-      {livesRemaining !== null && (
+
+      {/* Status banner */}
+      {caseStatus === "solved" && (
+        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded shadow">
+          ✅ You already solved this case. No further action needed.
+        </div>
+      )}
+      {caseStatus === "failed" && (
+        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded shadow">
+          ❌ You failed this case. Better luck next time.
+        </div>
+      )}
+      {caseStatus === "inactive" && (
+        <div className="mb-4 p-4 bg-yellow-100 text-yellow-800 rounded shadow">
+          ⚠️ You forfeited this case.
+        </div>
+      )}
+
+      {/* Lives Remaining */}
+      {livesRemaining !== null && caseStatus === "active" && (
         <p className="mb-2 text-sm text-gray-600">
           <strong>Lives Remaining:</strong> {livesRemaining}
         </p>
       )}
-      {caseStatus !== "active" && (
-        <p className="text-red-600 font-semibold">This case is no longer active.</p>
-      )}
-      {caseStatus === "solved" && (
-        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded shadow">
-           Case Solved! Great work, detective.
-       </div>
-      )}
 
-      {caseStatus === "failed" && (
-        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded shadow">
-           You've failed this case. Better luck next time.
-        </div>
-      )}
-    
-
-      {/* Case Summary */}
+      {/* Summary */}
       <p className="italic text-gray-600 mb-4">{caseData.summary}</p>
 
-      {/* Victim Card */}
+      {/* Victim */}
       <VictimCard
         victim={caseData.victim_name}
         occupation={caseData.victim_occupation}
@@ -116,9 +115,7 @@ export default function CaseInvestigation() {
         photoUrl={caseData.victim?.picture || caseData.victim?.thumbnail_picture}
       />
 
-
-
-      {/* Character Alibis & Clues */}
+      {/* Suspects */}
       <h2 className="text-xl font-semibold mt-6">Character Files</h2>
       <div className="grid gap-4 mt-2 sm:grid-cols-2 md:grid-cols-3">
         {Object.entries(caseData.alibis || {}).map(([name, alibi]) => {
@@ -143,14 +140,9 @@ export default function CaseInvestigation() {
             />
           );
         })}
- 
-
-
-
-
-
-
       </div>
+
+      {/* Evidence */}
       {caseData.evidence?.length > 0 && (
         <>
           <h2 className="text-xl font-bold mt-6">Evidence</h2>
@@ -168,15 +160,35 @@ export default function CaseInvestigation() {
               ))}
             </div>
           )}
-  </>
-)}
+        </>
+      )}
 
+      {/* Forfeit Case Button */}
+      {caseStatus === "active" && (
+        <button
+          className="mt-6 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+          onClick={async () => {
+            const confirm = window.confirm("Are you sure you want to forfeit this case?");
+            if (!confirm) return;
+            try {
+              const res = await axios.post(`/cases/${caseId}/forfeit/`);
+              alert("You’ve forfeited the case.");
+              setCaseStatus("inactive");
+            } catch (err) {
+              console.error("Failed to forfeit:", err);
+              alert("There was a problem forfeiting this case.");
+            }
+          }}
+        >
+          Forfeit Case
+        </button>
+      )}
 
+      {/* Back link */}
       <div>
-          {/* Back Link */}
-      <Link to="/cases" className="text-blue-600 underline mb-4 inline-block">
-        ← Back to case list
-      </Link>
+        <Link to="/cases" className="text-blue-600 underline mb-4 inline-block">
+          ← Back to case list
+        </Link>
       </div>
     </div>
   );

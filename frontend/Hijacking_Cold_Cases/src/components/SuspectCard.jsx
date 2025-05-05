@@ -1,50 +1,49 @@
 import React, { useState } from "react";
+import "./SuspectCard.css"; // new CSS file for this style
 
-export default function SuspectCard({ suspect, onGuess, isDisabled }) {
+export default function SuspectCard({ name, alibi, clueText, photoUrl, onGuess, isDisabled }) {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    name,
-    alibi,
-    clueText,
-    photoUrl,
-  } = suspect || {};
 
   return (
-    <div className="rounded-xl bg-white dark:bg-gray-800 p-4 shadow-md">
-      {photoUrl && (
-        <img
-          src={photoUrl}
-          alt={name}
-          className="w-full h-40 object-cover rounded-lg mb-3"
-        />
-      )}
-
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{name}</h3>
-
+    <div className="suspect-folder-container">
+      {/* Suspect Tab */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gray-900 text-white py-1 px-3 mt-2 rounded hover:bg-gray-700"
+        className="folder-tab"
       >
-        {isOpen ? "Close File" : "Open File"}
+        {isOpen ? `📁 Close File` : `📁 Open ${name}'s File`}
       </button>
 
+      {/* File Contents */}
       {isOpen && (
-        <div className="mt-3 space-y-2">
-          <p><strong>Alibi:</strong> {alibi}</p>
-          {clueText && (
-            <p><strong>Clue:</strong> {clueText}</p>
+        <div className="suspect-folder-paper">
+          <div className="folder-clip"></div>
+
+          {/* Suspect Photo */}
+          {photoUrl && (
+            <img
+              src={photoUrl}
+              alt={name}
+              className="suspect-photo"
+            />
           )}
+
+          {/* Info */}
+          <div className="suspect-info">
+            <p><strong>Name:</strong> {name}</p>
+            <p><strong>Alibi:</strong> {alibi || "None given"}</p>
+            {clueText && (
+              <p><strong>Clue:</strong> {clueText}</p>
+            )}
+          </div>
         </div>
       )}
 
+      {/* Guess Button */}
       <button
         onClick={() => onGuess(name)}
         disabled={isDisabled}
-        className={`mt-4 w-full py-2 rounded transition ${
-          isDisabled
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-red-600 hover:bg-red-500 text-white"
-        }`}
+        className={`guess-button ${isDisabled ? "disabled" : ""}`}
       >
         Guess {name} is the Killer
       </button>
