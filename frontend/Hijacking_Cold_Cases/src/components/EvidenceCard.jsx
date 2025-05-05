@@ -1,21 +1,29 @@
-// src/components/EvidenceCard.jsx
-import React from "react";
+import React, { useState } from "react";
+import "./EvidenceCard.css";
 
 export default function EvidenceCard({ evidence }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   if (!evidence) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-        {evidence.title}
-      </h3>
-      <p className="text-gray-800 dark:text-gray-200">{evidence.description}</p>
-      {evidence.image_url && (
-        <img
-          src={evidence.image_url}
-          alt={evidence.title}
-          className="mt-2 rounded max-h-48"
-        />
+    <div className="evidence-folder">
+      <button className="folder-tab" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? "📂 Close File" : "📂 Evidence File"}
+      </button>
+
+      {isOpen && (
+        <div className="evidence-content">
+          <h3>{evidence.title}</h3>
+          <p>{evidence.description}</p>
+          {evidence.image_url && (
+            <img
+              src={evidence.image_url}
+              alt={evidence.title}
+              className="evidence-image"
+            />
+          )}
+        </div>
       )}
     </div>
   );

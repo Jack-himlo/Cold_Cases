@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./VictimCard.css"; // <-- Import custom styling here
+import "./VictimCard.css";
 
 export default function VictimCard({
   victim,
@@ -8,8 +8,10 @@ export default function VictimCard({
   lastKnownLocation,
   backgroundStory,
   photoUrl,
+  initialOpen = false, // ← allows parent to control if the drawer starts open
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  // Use initialOpen to determine starting state
+  const [isOpen, setIsOpen] = useState(() => !!initialOpen);
 
   return (
     <div className="victim-folder-container">
@@ -27,12 +29,13 @@ export default function VictimCard({
           {photoUrl && (
             <img
               src={photoUrl}
-              alt={victim}
+              alt={`${victim.first_name} ${victim.last_name}`}
               className="victim-photo"
             />
           )}
+
           <div className="victim-info">
-            <p><strong>Name:</strong> {victim}</p>
+            <p><strong>Name:</strong> {victim.first_name} {victim.last_name}</p>
             <p><strong>Occupation:</strong> {occupation || "Unknown"}</p>
             <p><strong>Cause of Death:</strong> {causeOfDeath || "Unknown"}</p>
             <p><strong>Last Known Location:</strong> {lastKnownLocation || "Unknown"}</p>

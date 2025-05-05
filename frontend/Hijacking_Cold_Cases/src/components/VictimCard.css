@@ -1,79 +1,81 @@
-/* Folder-style container */
+/* Container for the entire victim folder */
 .victim-folder-container {
-    margin-top: 1rem;
-    position: relative;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    font-family: "Courier New", Courier, monospace;
+  margin-top: 1rem;
+  position: relative;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Folder-style tab/button */
+.folder-tab {
+  background-color: #d2b48c;
+  color: #2b2b2b;
+  border: none;
+  padding: 10px 18px;
+  font-weight: bold;
+  cursor: pointer;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s;
+  margin-bottom: 4px;       /* Prevent overlap */
+  z-index: 2;
+  position: relative;
+}
+
+.folder-tab:hover {
+  background-color: #c0a070;
+}
+
+/* Folder body */
+.victim-folder-paper {
+  background-color: #fefaf3;
+  border: 1px solid #ccc;
+  border-top: none;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+  padding: 1rem;
+  position: relative;
+  animation: slideIn 0.3s ease;
+}
+
+/* Decorative folder clip */
+.folder-clip {
+  width: 60px;
+  height: 8px;
+  background-color: #999;
+  border-radius: 4px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Victim image */
+.victim-photo {
+  max-width: 120px;
+  border: 2px solid #222;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Victim info block */
+.victim-info {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Slide animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) rotate(-1deg);
   }
-  
-  /* Tab look */
-  .folder-tab {
-    background-color: #d2b48c;
-    color: #2b2b2b;
-    border: none;
-    padding: 10px 18px;
-    font-weight: bold;
-    cursor: pointer;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    transition: background 0.2s;
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
   }
-  
-  .folder-tab:hover {
-    background-color: #c0a070;
-  }
-  
-  /* Paper background for file contents */
-  .victim-folder-paper {
-    background-color: #fefaf3;
-    border: 1px solid #ccc;
-    border-top: none;
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
-    padding: 1rem;
-    position: relative;
-    animation: slideIn 0.3s ease;
-  }
-  
-  /* Clip visual */
-  .folder-clip {
-    width: 60px;
-    height: 8px;
-    background-color: #999;
-    border-radius: 4px;
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  /* Image style */
-  .victim-photo {
-    max-width: 120px;
-    border: 2px solid #222;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-  
-  /* Case details */
-  .victim-info {
-    margin-top: 0.5rem;
-    font-size: 0.95rem;
-    color: #333;
-  }
-  
-  /* Slide animation */
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px) rotate(-1deg);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) rotate(0deg);
-    }
-  }
-  
+}

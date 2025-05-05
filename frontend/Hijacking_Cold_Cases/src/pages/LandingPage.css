@@ -1,7 +1,7 @@
-/* LandingPage.css */
-
+/* Import typewriter-style font */
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
+/* Main page container */
 .landing-container {
   min-height: 100vh;
   display: flex;
@@ -13,21 +13,36 @@
   background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
   background-color: #f5f3e7;
   color: #1a1a1a;
+  text-align: center;
 }
 
+/* Game logo title */
+.game-logo-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px #ccc;
+  letter-spacing: 1px;
+  color: #2c2c2c;
+}
+
+/* Subheading */
 .landing-heading {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: bold;
   margin-bottom: 0.5rem;
   text-shadow: 1px 1px #ccc;
 }
 
+/* Smaller subtitle under welcome */
 .landing-subheading {
   font-size: 1.1rem;
   font-style: italic;
   margin-bottom: 2rem;
+  color: #444;
 }
 
+/* Button/link wrapper */
 .landing-links {
   display: flex;
   flex-direction: column;
@@ -36,6 +51,7 @@
   max-width: 400px;
 }
 
+/* Base styles for all buttons and links */
 .landing-links a,
 .landing-links button {
   padding: 0.75rem 1rem;
@@ -50,34 +66,34 @@
   transition: background 0.3s ease;
 }
 
+/* Resume button (green) */
 .landing-links a.resume {
   background-color: #2d6a4f;
 }
-
 .landing-links a.resume:hover {
   background-color: #1b4332;
 }
 
+/* Start button (navy) */
 .landing-links button.start {
   background-color: #1d3557;
 }
-
 .landing-links button.start:hover {
   background-color: #0d1b2a;
 }
 
+/* View Cases (blue) */
 .landing-links a.cases {
   background-color: #457b9d;
 }
-
 .landing-links a.cases:hover {
   background-color: #1d3557;
 }
 
+/* Profile (gray) */
 .landing-links a.profile {
   background-color: #6c757d;
 }
-
 .landing-links a.profile:hover {
   background-color: #495057;
 }
